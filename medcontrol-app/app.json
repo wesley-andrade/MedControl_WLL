@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "MedControl",
+    "slug": "medcontrol",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/icon.png",
+    "scheme": "medcontrolapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.medcontrolapp",
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/icon.png",
+        "backgroundColor": "#F5F8FE"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "splash": {
+      "image": "./src/assets/images/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#F5F8FE"
+    }
+  }
+}
