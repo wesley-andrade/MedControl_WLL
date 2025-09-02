@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./styles";
 
-interface CustomInputProps {
+interface InputProps {
   label: string;
   placeholder: string;
   value: string;
@@ -15,7 +15,7 @@ interface CustomInputProps {
   editable?: boolean;
 }
 
-export const CustomInput: React.FC<CustomInputProps> = ({
+export const Input: React.FC<InputProps> = ({
   label,
   placeholder,
   value,

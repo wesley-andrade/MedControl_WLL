@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
-import { CustomInput } from "../../components/Input/CustomInput";
-import { CustomButton } from "../../components/Button/CustomButton";
+import { Input } from "../../components/Input/Input";
+import { Button } from "../../components/Button/Button";
 import { Checkbox } from "../../components/Checkbox/Checkbox";
 import { useLogin } from "./useLogin";
 import { styles } from "./styles";
@@ -59,7 +59,7 @@ export const LoginScreen: React.FC = () => {
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>Fazer Login</Text>
 
-            <CustomInput
+            <Input
               label="Email"
               placeholder="seu@email.com"
               value={email}
@@ -68,7 +68,7 @@ export const LoginScreen: React.FC = () => {
               editable={!isLoading}
             />
 
-            <CustomInput
+            <Input
               label="Senha"
               placeholder="Digite sua senha"
               value={password}
@@ -87,7 +87,7 @@ export const LoginScreen: React.FC = () => {
               disabled={isLoading}
             />
 
-            <CustomButton
+            <Button
               title={isLoading ? "Entrando..." : "Entrar"}
               onPress={handleLogin}
               style={styles.loginButton}
@@ -100,7 +100,7 @@ export const LoginScreen: React.FC = () => {
                   style={styles.loadingIndicator}
                 />
               )}
-            </CustomButton>
+            </Button>
 
             <View style={styles.signUpContainer}>
               <Text style={styles.signUpText}>Não tem uma conta? </Text>

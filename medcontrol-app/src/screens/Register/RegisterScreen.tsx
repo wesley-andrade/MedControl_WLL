@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
-import { CustomInput } from "../../components/Input/CustomInput";
-import { CustomButton } from "../../components/Button/CustomButton";
+import { Input } from "../../components/Input/Input";
+import { Button } from "../../components/Button/Button";
 import { useRegister } from "./useRegister";
 import { styles } from "./styles";
 
@@ -62,7 +62,7 @@ export const RegisterScreen: React.FC = () => {
           <View style={styles.formContainer}>
             <Text style={styles.formTitle}>Criar Conta</Text>
 
-            <CustomInput
+            <Input
               label="Email"
               placeholder="seu@email.com"
               value={email}
@@ -71,7 +71,7 @@ export const RegisterScreen: React.FC = () => {
               editable={!isLoading}
             />
 
-            <CustomInput
+            <Input
               label="Senha"
               placeholder="Digite sua senha"
               value={password}
@@ -83,7 +83,7 @@ export const RegisterScreen: React.FC = () => {
               editable={!isLoading}
             />
 
-            <CustomInput
+            <Input
               label="Confirmar Senha"
               placeholder="Confirme sua senha"
               value={confirmPassword}
@@ -128,7 +128,7 @@ export const RegisterScreen: React.FC = () => {
               </View>
             )}
 
-            <CustomButton
+            <Button
               title={isLoading ? "Criando conta..." : "Criar Conta"}
               onPress={handleRegister}
               style={styles.registerButton}
@@ -141,7 +141,7 @@ export const RegisterScreen: React.FC = () => {
                   style={styles.loadingIndicator}
                 />
               )}
-            </CustomButton>
+            </Button>
 
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Já tem uma conta? </Text>

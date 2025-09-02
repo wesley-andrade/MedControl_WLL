@@ -9,6 +9,20 @@ export const API_CONFIG = {
       LOGIN: "/api/auth/login",
       REGISTER: "/api/auth/register",
     },
+    MEDICINES: {
+      ROOT: "/api/medicines",
+      BY_ID: (id: number | string) => `/api/medicines/${id}`,
+      REGENERATE_DOSAGES: (id: number | string) =>
+        `/api/medicines/${id}/regenerate-dosages`,
+    },
+    DOSAGES: {
+      ROOT: "/api/dosages",
+      BY_ID: (id: number | string) => `/api/dosages/${id}`,
+      MARK_TAKEN: (id: number | string) => `/api/dosages/${id}/taken`,
+      MARK_MISSED: (id: number | string) => `/api/dosages/${id}/missed`,
+      BY_MEDICINE: (medicineId: number | string) =>
+        `/api/dosages/medicine/${medicineId}`,
+    },
   },
 
   DEFAULT_HEADERS: {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Alert } from "react-native";
 import { useNavigation } from "../../hooks/useNavigation";
 import { AuthService } from "../../services/authService";
+import { MIN_PASSWORD_LENGTH } from "../../utils/validationUtils";
 
 export const useRegister = () => {
   const navigation = useNavigation();
@@ -28,8 +29,11 @@ export const useRegister = () => {
       return false;
     }
 
-    if (password.length < 6) {
-      Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres");
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      Alert.alert(
+        "Erro",
+        `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres`
+      );
       return false;
     }
 
@@ -93,7 +97,7 @@ export const useRegister = () => {
     navigation.navigate("Login");
   };
 
-  const hasMinLength = password.length >= 6;
+  const hasMinLength = password.length >= MIN_PASSWORD_LENGTH;
   const passwordsMatch = password === confirmPassword && password.length > 0;
 
   return {
@@ -112,5 +116,5 @@ export const useRegister = () => {
     toggleShowConfirmPassword,
     handleRegister,
     handleLogin,
-  } as const;
+  };
 };
