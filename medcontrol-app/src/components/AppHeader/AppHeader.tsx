@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { styles } from "./styles";
+import { FilterBar } from "../FilterBar/FilterBar";
 
 interface AppHeaderProps {
   title?: string;
@@ -21,6 +22,11 @@ interface AppHeaderProps {
   showRightButton?: boolean;
   rightButtonIcon?: keyof typeof Ionicons.glyphMap;
   onRightButtonPress?: () => void;
+  showFilterBar?: boolean;
+  selectedFilter?: any;
+  onFilterChange?: (filter: any) => void;
+  gradientColors?: [string, string, ...string[]];
+  backgroundColor?: string;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -40,14 +46,35 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   showRightButton = false,
   rightButtonIcon = "add",
   onRightButtonPress,
+  showFilterBar = false,
+  selectedFilter,
+  onFilterChange,
+  gradientColors = ["#4E8DFF", "#5DA5FF"] as [string, string],
+  backgroundColor,
 }) => {
-  return (
-    <LinearGradient
-      colors={["#4E8DFF", "#5DA5FF"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.hero}
-    >
+  const renderHeader = () => {
+    if (backgroundColor) {
+      return (
+        <View style={[styles.hero, { backgroundColor }]}>
+          {renderHeaderContent()}
+        </View>
+      );
+    }
+
+    return (
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.hero}
+      >
+        {renderHeaderContent()}
+      </LinearGradient>
+    );
+  };
+
+  const renderHeaderContent = () => (
+    <>
       <View style={styles.headerTop}>
         {showBackButton && (
           <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
@@ -99,6 +126,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         </View>
       )}
-    </LinearGradient>
+
+      {showFilterBar && selectedFilter && onFilterChange && (
+        <FilterBar
+          selectedFilter={selectedFilter}
+          onFilterChange={onFilterChange}
+        />
+      )}
+    </>
   );
+
+  return renderHeader();
 };

@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   hero: {
-    paddingTop: 20,
+    paddingTop: 12,
     paddingBottom: 24,
     paddingHorizontal: 24,
     borderBottomLeftRadius: 22,
