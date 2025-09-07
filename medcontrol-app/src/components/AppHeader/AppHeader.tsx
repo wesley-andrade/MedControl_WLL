@@ -49,7 +49,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   showFilterBar = false,
   selectedFilter,
   onFilterChange,
-  gradientColors = ["#4E8DFF", "#5DA5FF"] as [string, string],
+  gradientColors = ["#2291FF", "#7DBEFF"] as [string, string],
   backgroundColor,
 }) => {
   const renderHeader = () => {

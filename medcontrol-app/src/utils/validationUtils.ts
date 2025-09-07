@@ -1,9 +1,5 @@
 import { Alert } from "react-native";
-
-export interface ValidationResult {
-  isValid: boolean;
-  message?: string;
-}
+import { ValidationResult } from "../types";
 
 export const MIN_PASSWORD_LENGTH = 6;
 const DATE_REGEX = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;

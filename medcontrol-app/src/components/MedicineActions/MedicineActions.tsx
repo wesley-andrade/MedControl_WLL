@@ -67,7 +67,7 @@ export const MedicineActions: React.FC<MedicineActionsProps> = ({
             {registeringDose
               ? "Registrando..."
               : !canTakeDose
-              ? "Aguarde o horário"
+              ? "Aguarde horário"
               : "Registrar Dose"}
           </Text>
         </TouchableOpacity>

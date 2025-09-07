@@ -23,13 +23,7 @@ import {
   STACK_SCREEN_OPTIONS,
 } from "./styles";
 
-export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Main: undefined;
-  Medicine: { medicineId: number };
-  Form: { medicineId?: number };
-};
+import { RootStackParamList } from "../types";
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();

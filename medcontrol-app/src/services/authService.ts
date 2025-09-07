@@ -1,19 +1,11 @@
 import { buildApiUrl, getAuthHeaders } from "../config/api";
-import { LoginCredentials, RegisterCredentials, User } from "../types";
-
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-  };
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-}
+import {
+  LoginCredentials,
+  RegisterCredentials,
+  User,
+  LoginResponse,
+  ApiResponse,
+} from "../types";
 
 class AuthService {
   static async login(credentials: LoginCredentials): Promise<LoginResponse> {

@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../navigation/AppNavigator";
+import { RootStackParamList } from "../../types";
 import { styles } from "./styles";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { MedicineItem } from "../../components/MedicineItem/MedicineItem";

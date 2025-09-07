@@ -22,6 +22,14 @@ export interface LoginUser {
   email: string;
 }
 
+export interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+  };
+}
+
 export interface Medicine {
   id: number;
   userId: number;
@@ -54,4 +62,57 @@ export interface Dosage {
   scheduledAt: string;
   takenAt?: string | null;
   status: "pending" | "taken" | "missed" | "late";
+}
+
+export interface DosageItem {
+  id: number;
+  medicineId: number;
+  scheduledAt?: string;
+  expectedTimeDate?: string;
+  takenAt?: string | null;
+  status: "pending" | "taken" | "missed" | "late";
+}
+
+export interface NotificationData {
+  dosageId: number;
+  medicineId: number;
+  medicineName: string;
+  dosage: string;
+  expectedTime: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  message?: string;
+}
+
+export type StatusVariant = "active" | "low" | "inactive" | "custom";
+
+export type FilterType = "all" | "onTime" | "delayed" | "missed";
+
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Main: undefined;
+  Medicine: { medicineId: number };
+  Form: { medicineId?: number };
+};
+
+export interface AdherenceData {
+  percentage: number;
+  taken: number;
+  missed: number;
+  total: number;
+}
+
+export interface MedicineWithCalculatedData extends Medicine {
+  _adherence?: AdherenceData;
+  _nextDoses?: DosageItem[];
+  _canTakeNextDose?: boolean;
 }

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Medicine } from "../../types";
+import { DosageItem, Medicine } from "../../types";
 import { MedicineService } from "../../services/medicineService";
-import { DosageService, DosageItem } from "../../services/dosageService";
+import { DosageService } from "../../services/dosageService";
 import { isDosagePending } from "../../utils/dateUtils";
+import { useNotifications } from "../../hooks/useNotifications";
 
 export const useDashboard = () => {
   const { token } = useAuth();
@@ -11,6 +12,8 @@ export const useDashboard = () => {
   const [dosages, setDosages] = useState<DosageItem[]>([]);
   const [search, setSearch] = useState("");
   const [showFinished, setShowFinished] = useState(false);
+  const { scheduleMultipleNotifications, hasPermissions, requestPermissions } =
+    useNotifications();
 
   const fetchMedicines = useCallback(async () => {
     if (!token) return;
@@ -19,10 +22,19 @@ export const useDashboard = () => {
       setMedicines(list);
       const d = await DosageService.list(token);
       setDosages(d);
+
+      if (hasPermissions) {
+        const pendingDosages = d.filter((dosage) =>
+          isDosagePending(dosage.status)
+        );
+        if (pendingDosages.length > 0) {
+          await scheduleMultipleNotifications(pendingDosages, list);
+        }
+      }
     } catch (err: any) {
       console.error("Erro ao buscar medicamentos:", err);
     }
-  }, [token]);
+  }, [token, hasPermissions, scheduleMultipleNotifications]);
 
   useEffect(() => {
     fetchMedicines();
@@ -96,5 +108,7 @@ export const useDashboard = () => {
     setSearch,
     showFinished,
     setShowFinished,
+    hasPermissions,
+    requestPermissions,
   };
 };

@@ -13,7 +13,7 @@ import { MedicineActions } from "../../components/MedicineActions/MedicineAction
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { MedicineDetails } from "../../components/MedicineDetails/MedicineDetails";
 import { DosesList } from "../../components/DosesList/DosesList";
-import { RootStackParamList } from "../../navigation/AppNavigator";
+import { RootStackParamList } from "../../types";
 import { styles } from "./styles";
 import { useMedicine } from "./useMedicine";
 

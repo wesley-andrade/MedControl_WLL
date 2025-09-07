@@ -1,14 +1,6 @@
 import { API_CONFIG, buildApiUrl } from "../config/api";
 import { apiGet, apiPut, apiDelete } from "../utils/apiUtils";
-
-export interface DosageItem {
-  id: number;
-  medicineId: number;
-  scheduledAt?: string;
-  expectedTimeDate?: string;
-  takenAt?: string | null;
-  status: "pending" | "taken" | "missed" | "late";
-}
+import { DosageItem } from "../types";
 
 class DosageService {
   static async list(token: string): Promise<DosageItem[]> {

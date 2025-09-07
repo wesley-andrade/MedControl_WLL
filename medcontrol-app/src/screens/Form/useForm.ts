@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
 import { Medicine, CreateMedicineRequest } from "../../types";
 import { MedicineService } from "../../services/medicineService";
+import { DosageService } from "../../services/dosageService";
 import {
   formatDateForDisplay,
   extractTimeFromDate,
@@ -17,6 +18,7 @@ import {
   validateFixedSchedulesFormat,
   showValidationError,
 } from "../../utils/validationUtils";
+import { useNotifications } from "../../hooks/useNotifications";
 
 interface UseFormProps {
   medicineId?: number;
@@ -42,6 +44,7 @@ export const useForm = ({ medicineId }: UseFormProps) => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [useFixedSchedules, setUseFixedSchedules] = useState(false);
+  const { scheduleMultipleNotifications, hasPermissions } = useNotifications();
 
   const isEditing = !!medicineId;
 
@@ -180,10 +183,34 @@ export const useForm = ({ medicineId }: UseFormProps) => {
 
   const saveNewMedicine = useCallback(
     async (medicineData: CreateMedicineRequest) => {
-      await MedicineService.create(token!, medicineData);
+      const newMedicine = await MedicineService.create(token!, medicineData);
+
+      if (hasPermissions && newMedicine.active) {
+        try {
+          setTimeout(async () => {
+            const dosages = await DosageService.list(token!);
+            const pendingDosages = dosages.filter(
+              (dosage) =>
+                dosage.medicineId === newMedicine.id &&
+                dosage.status === "pending"
+            );
+            if (pendingDosages.length > 0) {
+              await scheduleMultipleNotifications(pendingDosages, [
+                newMedicine,
+              ]);
+            }
+          }, 2000);
+        } catch (error) {
+          console.error(
+            "Erro ao agendar notificações para novo medicamento:",
+            error
+          );
+        }
+      }
+
       Alert.alert("Sucesso", "Medicamento criado com sucesso!");
     },
-    [token]
+    [token, hasPermissions, scheduleMultipleNotifications]
   );
 
   const updateExistingMedicine = useCallback(

@@ -1,8 +1,4 @@
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-}
+import { ApiResponse } from "../types";
 
 export const handleApiResponse = async <T>(
   response: Response,

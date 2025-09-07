@@ -15,7 +15,7 @@ import { SaveButton } from "../../components/SaveButton/SaveButton";
 import { AppHeader } from "../../components/AppHeader/AppHeader";
 import { NotesForm } from "../../components/NotesForm/NotesForm";
 import { PeriodForm } from "../../components/PeriodForm/PeriodForm";
-import { RootStackParamList } from "../../navigation/AppNavigator";
+import { RootStackParamList } from "../../types";
 import { styles } from "./styles";
 import { useForm } from "./useForm";
 

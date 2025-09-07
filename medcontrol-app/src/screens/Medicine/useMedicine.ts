@@ -1,27 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
-import { DosageItem, DosageService } from "../../services/dosageService";
+import { DosageService } from "../../services/dosageService";
 import { MedicineService } from "../../services/medicineService";
-import { Medicine } from "../../types";
+import {
+  DosageItem,
+  AdherenceData,
+  MedicineWithCalculatedData,
+} from "../../types";
 import {
   isDosagePending,
   isDosageTaken,
   isDosageMissed,
 } from "../../utils/dateUtils";
-
-interface AdherenceData {
-  percentage: number;
-  taken: number;
-  missed: number;
-  total: number;
-}
-
-interface MedicineWithCalculatedData extends Medicine {
-  _adherence?: AdherenceData;
-  _nextDoses?: DosageItem[];
-  _canTakeNextDose?: boolean;
-}
+import { useNotifications } from "../../hooks/useNotifications";
 
 interface UseMedicineProps {
   medicineId: number;
@@ -34,6 +26,12 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
   );
   const [loading, setLoading] = useState(true);
   const [registeringDose, setRegisteringDose] = useState(false);
+  const {
+    scheduleMultipleNotifications,
+    updateNotificationForDosage,
+    cancelMedicineNotifications,
+    hasPermissions,
+  } = useNotifications();
 
   const getMedicineDosages = useCallback(async () => {
     if (!token) return [];
@@ -142,6 +140,19 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
         _nextDoses: getNextDoses(dosagesData),
         _canTakeNextDose: canTakeNextDoseCheck(dosagesData),
       });
+
+      if (hasPermissions && medicineData.active) {
+        const pendingDosages = dosagesData.filter((dosage) =>
+          isDosagePending(dosage.status)
+        );
+        if (pendingDosages.length > 0) {
+          try {
+            await scheduleMultipleNotifications(pendingDosages, [medicineData]);
+          } catch (error) {
+            console.error("Erro ao agendar notificações:", error);
+          }
+        }
+      }
     } catch (error) {
       console.error("Erro ao carregar detalhes:", error);
       Alert.alert(
@@ -158,6 +169,8 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
     calculateAdherence,
     getNextDoses,
     canTakeNextDoseCheck,
+    hasPermissions,
+    scheduleMultipleNotifications,
   ]);
 
   const handleRegisterDose = useCallback(async () => {
@@ -180,6 +193,11 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
     try {
       setRegisteringDose(true);
       await DosageService.registerDoseTaken(token, nextDose.id);
+
+      if (hasPermissions) {
+        await updateNotificationForDosage(nextDose.id, "taken");
+      }
+
       await loadMedicineDetails();
       Alert.alert("Sucesso", "Dose registrada com sucesso!");
     } catch (error) {
@@ -194,6 +212,8 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
     getNextPendingDose,
     showTimeWaitAlert,
     loadMedicineDetails,
+    hasPermissions,
+    updateNotificationForDosage,
   ]);
 
   const handleForgotDose = useCallback(async () => {
@@ -217,6 +237,11 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
             try {
               setRegisteringDose(true);
               await DosageService.markDoseMissed(token, nextDose.id);
+
+              if (hasPermissions) {
+                await updateNotificationForDosage(nextDose.id, "missed");
+              }
+
               await loadMedicineDetails();
               Alert.alert("Sucesso", "Dose marcada como esquecida!");
             } catch (error) {
@@ -232,7 +257,14 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
         },
       ]
     );
-  }, [token, medicine, getNextPendingDose, loadMedicineDetails]);
+  }, [
+    token,
+    medicine,
+    getNextPendingDose,
+    loadMedicineDetails,
+    hasPermissions,
+    updateNotificationForDosage,
+  ]);
 
   const handleToggleActive = useCallback(async () => {
     if (!token || !medicine) return;
@@ -241,6 +273,10 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
       await MedicineService.update(token, medicine.id, {
         active: !medicine.active,
       });
+
+      if (medicine.active && hasPermissions) {
+        await cancelMedicineNotifications(medicine.id);
+      }
 
       if (!medicine.active) {
         try {
@@ -259,12 +295,22 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
       console.error("Erro ao alterar status do medicamento:", error);
       Alert.alert("Erro", "Não foi possível alterar o status do medicamento");
     }
-  }, [token, medicine, loadMedicineDetails]);
+  }, [
+    token,
+    medicine,
+    loadMedicineDetails,
+    hasPermissions,
+    cancelMedicineNotifications,
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!token || !medicine) return;
 
     try {
+      if (hasPermissions) {
+        await cancelMedicineNotifications(medicine.id);
+      }
+
       await DosageService.deleteByMedicine(token, medicine.id);
       await MedicineService.remove(token, medicine.id);
       Alert.alert("Sucesso", "Medicamento e histórico excluídos com sucesso!");
@@ -274,7 +320,7 @@ export const useMedicine = ({ medicineId }: UseMedicineProps) => {
       Alert.alert("Erro", "Não foi possível excluir o medicamento");
       return false;
     }
-  }, [token, medicine]);
+  }, [token, medicine, hasPermissions, cancelMedicineNotifications]);
 
   useEffect(() => {
     loadMedicineDetails();

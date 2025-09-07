@@ -20,22 +20,11 @@ export const HistoryScreen: React.FC = () => {
     <HistoryItem dosage={item} />
   );
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <AppHeader title="Histórico" backgroundColor="#10B981" />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Carregando...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <AppHeader
         title="Histórico"
-        backgroundColor="#10B981"
+        gradientColors={["#28AF60", "#58D88D"]}
         showFilterBar={true}
         selectedFilter={selectedFilter}
         onFilterChange={handleFilterChange}

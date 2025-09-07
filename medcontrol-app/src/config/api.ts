@@ -1,7 +1,7 @@
 export const API_CONFIG = {
   BASE_URL:
     process.env.NODE_ENV === "development" || (global as any).__DEV__
-      ? "http://10.0.2.2:3000"
+      ? "http://192.168.1.3:3000"
       : "http://localhost:3000",
 
   ENDPOINTS: {

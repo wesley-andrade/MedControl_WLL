@@ -2,9 +2,8 @@ import React from "react";
 import { View, Text, TouchableOpacity, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { formatTime } from "../../utils/dateUtils";
+import { StatusVariant } from "../../types";
 import { styles } from "./styles";
-
-type StatusVariant = "active" | "low" | "inactive" | "custom";
 
 interface MedicineItemProps {
   name: string;

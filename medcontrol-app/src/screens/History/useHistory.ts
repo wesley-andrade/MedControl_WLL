@@ -1,10 +1,8 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../contexts/AuthContext";
-import { DosageService, DosageItem } from "../../services/dosageService";
-import { Medicine } from "../../types";
-
-export type FilterType = "all" | "onTime" | "delayed" | "missed";
+import { DosageService } from "../../services/dosageService";
+import { Medicine, DosageItem, FilterType } from "../../types";
 
 interface UseHistoryReturn {
   dosages: DosageItem[];
