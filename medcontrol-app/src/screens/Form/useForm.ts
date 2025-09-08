@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
-import { Medicine, CreateMedicineRequest } from "../../types";
+import {
+  Medicine,
+  CreateMedicineRequest,
+  UpdateMedicineRequest,
+} from "../../types";
 import { MedicineService } from "../../services/medicineService";
 import { DosageService } from "../../services/dosageService";
 import {
@@ -31,6 +35,9 @@ export const useForm = ({ medicineId }: UseFormProps) => {
   const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [originalMedicine, setOriginalMedicine] = useState<Medicine | null>(
+    null
+  );
   const [medicine, setMedicine] = useState<Partial<Medicine>>({
     name: "",
     dosage: "",
@@ -75,6 +82,8 @@ export const useForm = ({ medicineId }: UseFormProps) => {
         setEndTime("");
       }
       setUseFixedSchedules(!!medicineData.fixedSchedules);
+
+      setOriginalMedicine(medicineData);
     } catch (error) {
       console.error("Erro ao carregar medicamento:", error);
       Alert.alert("Erro", "Não foi possível carregar o medicamento");
@@ -153,34 +162,6 @@ export const useForm = ({ medicineId }: UseFormProps) => {
     return medicineData;
   }, [medicine, startTime, endTime, useFixedSchedules]);
 
-  const checkIfDosagesNeedRegeneration = useCallback(
-    async (
-      originalMedicine: Medicine,
-      updatedData: CreateMedicineRequest
-    ): Promise<boolean> => {
-      return (
-        originalMedicine.frequencyHours !== updatedData.frequencyHours ||
-        originalMedicine.fixedSchedules !== updatedData.fixedSchedules ||
-        originalMedicine.dateStart !== updatedData.dateStart ||
-        originalMedicine.dateEnd !== updatedData.dateEnd
-      );
-    },
-    []
-  );
-
-  const regenerateDosagesIfNeeded = useCallback(
-    async (medicineId: number, needsRegeneration: boolean) => {
-      if (needsRegeneration) {
-        try {
-          await MedicineService.regenerateDosages(token!, medicineId);
-        } catch (dosageError) {
-          console.error("Erro ao regenerar doses:", dosageError);
-        }
-      }
-    },
-    [token]
-  );
-
   const saveNewMedicine = useCallback(
     async (medicineData: CreateMedicineRequest) => {
       const newMedicine = await MedicineService.create(token!, medicineData);
@@ -215,21 +196,43 @@ export const useForm = ({ medicineId }: UseFormProps) => {
 
   const updateExistingMedicine = useCallback(
     async (medicineId: number, medicineData: CreateMedicineRequest) => {
-      await MedicineService.update(token!, medicineId, medicineData);
+      const changes: UpdateMedicineRequest = {};
 
-      const originalMedicine = await MedicineService.getById(
-        token!,
-        medicineId
-      );
-      const needsRegeneration = await checkIfDosagesNeedRegeneration(
-        originalMedicine,
-        medicineData
-      );
+      if (originalMedicine) {
+        if (originalMedicine.name !== medicineData.name)
+          changes.name = medicineData.name;
+        if (originalMedicine.dosage !== medicineData.dosage)
+          changes.dosage = medicineData.dosage;
+        if (originalMedicine.frequencyHours !== medicineData.frequencyHours)
+          changes.frequencyHours = medicineData.frequencyHours;
 
-      await regenerateDosagesIfNeeded(medicineId, needsRegeneration);
+        const originalFixed = originalMedicine.fixedSchedules || "";
+        const newFixed = medicineData.fixedSchedules || "";
+        if (originalFixed !== newFixed) changes.fixedSchedules = newFixed;
+
+        const originalStart = originalMedicine.dateStart;
+        const newStart = medicineData.dateStart;
+        if (originalStart !== newStart) changes.dateStart = newStart;
+
+        const originalEnd = originalMedicine.dateEnd || "";
+        const newEnd = medicineData.dateEnd || "";
+        if (originalEnd !== newEnd) changes.dateEnd = newEnd;
+
+        const originalObs = originalMedicine.observations || "";
+        const newObs = medicineData.observations || "";
+        if (originalObs !== newObs) changes.observations = newObs;
+
+        if (originalMedicine.active !== medicineData.active)
+          changes.active = !!medicineData.active;
+      } else {
+        Object.assign(changes, medicineData);
+      }
+
+      await MedicineService.update(token!, medicineId, changes);
+
       Alert.alert("Sucesso", "Medicamento atualizado com sucesso!");
     },
-    [token, checkIfDosagesNeedRegeneration, regenerateDosagesIfNeeded]
+    [token, originalMedicine]
   );
 
   const handleSave = useCallback(async () => {
