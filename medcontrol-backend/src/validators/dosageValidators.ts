@@ -19,3 +19,13 @@ export const dosageIdSchema = z.object({
     return num;
   }),
 });
+
+export const medicineIdSchema = z.object({
+  medicineId: z.string().transform((val) => {
+    const num = Number(val);
+    if (isNaN(num)) {
+      throw new Error("ID do medicamento deve ser um número válido");
+    }
+    return num;
+  }),
+});

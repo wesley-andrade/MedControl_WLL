@@ -8,6 +8,7 @@ import {
 import {
   createDosageSchema,
   dosageIdSchema,
+  medicineIdSchema,
 } from "../validators/dosageValidators";
 
 const router = Router();
@@ -34,6 +35,11 @@ router.put(
   "/:id/missed",
   validateParams(dosageIdSchema),
   dosageController.markDosageMissed
+);
+router.delete(
+  "/medicine/:medicineId",
+  validateParams(medicineIdSchema),
+  dosageController.deleteByMedicine
 );
 
 export default router;

@@ -189,6 +189,27 @@ const markDosageMissed = async (
   }
 };
 
+const deleteByMedicine = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user!.id;
+    const medicineId = validateId(req.params.medicineId);
+
+    const result = await dosageService.deleteByMedicine(medicineId, userId);
+
+    res.json(successResponse(result, "Dosagens excluídas com sucesso"));
+  } catch (error: any) {
+    next(
+      error instanceof ApiError
+        ? error
+        : ApiError.internalError("Erro ao excluir dosagens do medicamento")
+    );
+  }
+};
+
 export default {
   getAllDosages,
   getDosageById,
@@ -197,4 +218,5 @@ export default {
   deleteDosage,
   registerDosageTaken,
   markDosageMissed,
+  deleteByMedicine,
 };

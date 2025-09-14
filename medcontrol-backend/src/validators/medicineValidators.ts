@@ -9,23 +9,33 @@ export const createMedicineSchema = z
       .int("Frequência deve ser um inteiro")
       .positive("Frequência deve ser um número positivo"),
     fixedSchedules: z
-      .string()
-      .regex(
-        /^(?:[01]\d|2[0-3]):[0-5]\d(?:\s*,\s*(?:[01]\d|2[0-3]):[0-5]\d)*$/,
-        "Horários devem estar no formato HH:mm separados por vírgula"
-      )
+      .union([
+        z
+          .string()
+          .regex(
+            /^(?:[01]\d|2[0-3]):[0-5]\d(?:\s*,\s*(?:[01]\d|2[0-3]):[0-5]\d)*$/,
+            "Horários devem estar no formato HH:mm separados por vírgula"
+          ),
+        z.string().length(0, "Horários fixos podem ser vazios"),
+      ])
       .optional(),
     dateStart: z.string().datetime("Data de início deve ser uma data válida"),
     dateEnd: z
-      .string()
-      .datetime("Data de fim deve ser uma data válida")
+      .union([
+        z.string().datetime("Data de fim deve ser uma data válida"),
+        z.string().length(0, "Data de fim pode ser vazia"),
+      ])
       .optional(),
     observations: z.string().optional(),
     active: z.boolean().default(true),
   })
   .refine(
-    (data) =>
-      !data.dateEnd || new Date(data.dateEnd) >= new Date(data.dateStart),
+    (data) => {
+      if (data.dateEnd && data.dateEnd.length > 0) {
+        return new Date(data.dateEnd) >= new Date(data.dateStart);
+      }
+      return true;
+    },
     {
       message: "Data de fim deve ser igual ou posterior à data de início",
       path: ["dateEnd"],
@@ -42,19 +52,27 @@ export const updateMedicineSchema = z
       .positive("Frequência deve ser um número positivo")
       .optional(),
     fixedSchedules: z
-      .string()
-      .regex(
-        /^(?:[01]\d|2[0-3]):[0-5]\d(?:\s*,\s*(?:[01]\d|2[0-3]):[0-5]\d)*$/,
-        "Horários devem estar no formato HH:mm separados por vírgula"
-      )
+      .union([
+        z
+          .string()
+          .regex(
+            /^(?:[01]\d|2[0-3]):[0-5]\d(?:\s*,\s*(?:[01]\d|2[0-3]):[0-5]\d)*$/,
+            "Horários devem estar no formato HH:mm separados por vírgula"
+          ),
+        z.string().length(0, "Horários fixos podem ser vazios"),
+      ])
       .optional(),
     dateStart: z
-      .string()
-      .datetime("Data de início deve ser uma data válida")
+      .union([
+        z.string().datetime("Data de início deve ser uma data válida"),
+        z.string().length(0, "Data de início pode ser vazio"),
+      ])
       .optional(),
     dateEnd: z
-      .string()
-      .datetime("Data de fim deve ser uma data válida")
+      .union([
+        z.string().datetime("Data de fim deve ser uma data válida"),
+        z.string().length(0, "Data de fim pode ser vazia"),
+      ])
       .optional(),
     observations: z.string().optional(),
     active: z.boolean().optional(),

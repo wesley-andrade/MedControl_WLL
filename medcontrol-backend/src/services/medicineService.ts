@@ -2,6 +2,7 @@ import { ApiError } from "../middlewares/errorMiddleware";
 import { DosageGeneratorService } from "./dosageGeneratorService";
 import { CreateMedicineRequest } from "../types/medicine";
 import { medicineModel } from "../models/medicineModel";
+import dosageService from "./dosageService";
 
 const getAllMedicinesByUser = async (userId: number) => {
   return medicineModel.findManyByUser(userId);
@@ -81,17 +82,36 @@ const updateMedicine = async (
 
   if (shouldRegenerateDosages) {
     try {
-      const fromDate =
-        updates.dateStart !== undefined ? new Date(0) : undefined;
+      let fromDate: Date | undefined;
+
+      if (updates.active === true && !medicine.active) {
+        fromDate = medicine.dateStart;
+      }
+
+      const effectiveFrequencyHours =
+        updates.frequencyHours !== undefined
+          ? updates.frequencyHours
+          : medicine.frequencyHours;
+
+      const effectiveFixedSchedules =
+        updates.fixedSchedules !== undefined
+          ? updates.fixedSchedules
+          : medicine.fixedSchedules || undefined;
+
+      const effectiveDateStart = updates.dateStart
+        ? new Date(updates.dateStart)
+        : medicine.dateStart;
+
+      const effectiveDateEnd = updates.dateEnd
+        ? new Date(updates.dateEnd)
+        : medicine.dateEnd || undefined;
 
       await DosageGeneratorService.updateDosagesForMedicine(
         id,
-        updates.frequencyHours,
-        updates.dateStart ? new Date(updates.dateStart) : medicine.dateStart,
-        updates.dateEnd
-          ? new Date(updates.dateEnd)
-          : medicine.dateEnd || undefined,
-        updates.fixedSchedules,
+        effectiveFrequencyHours,
+        effectiveDateStart,
+        effectiveDateEnd,
+        effectiveFixedSchedules,
         fromDate
       );
     } catch (error) {
@@ -106,18 +126,18 @@ const updateMedicine = async (
 };
 
 const deleteMedicine = async (userId: number, id: number) => {
+  try {
+    await dosageService.deleteByMedicine(id, userId);
+  } catch (error) {
+    console.error(`Erro ao deletar dosagens do medicamento ${id}:`, error);
+  }
+
   const result = await medicineModel.remove(userId, id);
   if (!result.deleted) {
     if (result.reason === "NOT_FOUND") {
       throw ApiError.notFound(
         "Medicamento não encontrado",
         "MEDICINE_NOT_FOUND"
-      );
-    }
-    if (result.reason === "HAS_DOSAGES") {
-      throw ApiError.conflict(
-        "Não é possível excluir: existem dosagens associadas",
-        "MEDICINE_HAS_DOSAGES"
       );
     }
   }

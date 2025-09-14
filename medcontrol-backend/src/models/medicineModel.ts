@@ -58,16 +58,25 @@ export const medicineModel = {
           frequencyHours: updates.frequencyHours,
         }),
         ...(updates.fixedSchedules !== undefined && {
-          fixedSchedules: updates.fixedSchedules,
+          fixedSchedules:
+            updates.fixedSchedules && updates.fixedSchedules.trim()
+              ? updates.fixedSchedules
+              : null,
         }),
         ...(updates.dateStart !== undefined && {
           dateStart: new Date(updates.dateStart),
         }),
         ...(updates.dateEnd !== undefined && {
-          dateEnd: updates.dateEnd ? new Date(updates.dateEnd) : null,
+          dateEnd:
+            updates.dateEnd && updates.dateEnd.trim()
+              ? new Date(updates.dateEnd)
+              : null,
         }),
         ...(updates.observations !== undefined && {
-          observations: updates.observations,
+          observations:
+            updates.observations && updates.observations.trim()
+              ? updates.observations
+              : null,
         }),
         ...(updates.active !== undefined && { active: updates.active }),
       },
@@ -77,11 +86,8 @@ export const medicineModel = {
   remove: async (userId: number, id: number) => {
     const med = await prisma.medicine.findFirst({
       where: { id, userId },
-      include: { dosages: { select: { id: true }, take: 1 } },
     });
     if (!med) return { deleted: false, reason: "NOT_FOUND" } as const;
-    if (med.dosages.length > 0)
-      return { deleted: false, reason: "HAS_DOSAGES" } as const;
 
     await prisma.medicine.delete({ where: { id } });
     return { deleted: true as const };

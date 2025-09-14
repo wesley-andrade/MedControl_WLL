@@ -125,8 +125,22 @@ const updateDosage = async (
   }
 
   if (updates.status === "taken" && dosage.status === "pending") {
+    const currentTime = getCurrentUTC();
+    if (currentTime < dosage.expectedTimeDate) {
+      const timeDiff =
+        dosage.expectedTimeDate.getTime() - currentTime.getTime();
+      const minutesDiff = Math.ceil(timeDiff / (1000 * 60));
+
+      throw ApiError.badRequest(
+        `Não é possível tomar a dose antes do horário programado. Aguarde ${minutesDiff} minuto${
+          minutesDiff > 1 ? "s" : ""
+        }.`,
+        "DOSE_TOO_EARLY"
+      );
+    }
+
     if (!updates.takenAt) {
-      updates.takenAt = getCurrentUTC();
+      updates.takenAt = currentTime;
     }
 
     const lateMinutes = calculateLateMinutes(
@@ -163,7 +177,7 @@ const updateDosage = async (
             nextTime,
             medicine.dateEnd || undefined,
             undefined,
-            updates.takenAt
+            nextTime
           );
         }
       } catch (error) {
@@ -171,13 +185,67 @@ const updateDosage = async (
       }
     }
 
+    try {
+      const medicine = await prisma.medicine.findUnique({
+        where: { id: dosage.medicineId },
+      });
+      if (medicine && medicine.active) {
+        const nowUtc = getCurrentUTC();
+        const futurePendingCount = await prisma.dosage.count({
+          where: {
+            medicineId: dosage.medicineId,
+            status: "pending",
+            expectedTimeDate: { gt: nowUtc },
+          },
+        });
+
+        if (futurePendingCount === 0) {
+          await prisma.medicine.update({
+            where: { id: dosage.medicineId },
+            data: { active: false },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao desativar medicamento após última dose:", err);
+    }
+
     return updatedDosage;
   }
 
-  return prisma.dosage.update({
+  const updated = await prisma.dosage.update({
     where: { id },
     data: updates,
   });
+
+  if (updates.status === "missed") {
+    try {
+      const medicine = await prisma.medicine.findUnique({
+        where: { id: updated.medicineId },
+      });
+      if (medicine && medicine.active) {
+        const nowUtc = getCurrentUTC();
+        const futurePendingCount = await prisma.dosage.count({
+          where: {
+            medicineId: updated.medicineId,
+            status: "pending",
+            expectedTimeDate: { gt: nowUtc },
+          },
+        });
+
+        if (futurePendingCount === 0) {
+          await prisma.medicine.update({
+            where: { id: updated.medicineId },
+            data: { active: false },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao desativar medicamento após dose perdida:", err);
+    }
+  }
+
+  return updated;
 };
 
 const calculateLateMinutes = (expectedTime: Date, takenTime: Date): number => {
@@ -207,10 +275,30 @@ const deleteDosage = async (id: number, userId: number) => {
   });
 };
 
+const deleteByMedicine = async (medicineId: number, userId: number) => {
+  const medicine = await prisma.medicine.findFirst({
+    where: { id: medicineId, userId },
+  });
+
+  if (!medicine) {
+    throw ApiError.notFound("Medicamento não encontrado", "MEDICINE_NOT_FOUND");
+  }
+
+  const result = await prisma.dosage.deleteMany({
+    where: { medicineId },
+  });
+
+  return {
+    message: `${result.count} dosagens foram excluídas`,
+    deletedCount: result.count,
+  };
+};
+
 export default {
   getAllDosagesByUser,
   getDosageById,
   createDosage,
   updateDosage,
   deleteDosage,
+  deleteByMedicine,
 };

@@ -92,7 +92,7 @@ export class DosageGeneratorService {
     let generated = 0;
 
     while (currentDate <= endDate && generated < MAX_DOSAGES) {
-      if (generated === 0 || currentDate >= now) {
+      if (currentDate >= now) {
         dosages.push({
           expectedTimeDate: new Date(currentDate),
           status: "pending",
@@ -105,15 +105,19 @@ export class DosageGeneratorService {
       );
     }
 
-    const createdDosages = await prisma.dosage.createMany({
-      data: dosages.map((dosage) => ({
-        medicineId,
-        expectedTimeDate: dosage.expectedTimeDate,
-        status: dosage.status,
-      })),
-    });
+    if (dosages.length > 0) {
+      const createdDosages = await prisma.dosage.createMany({
+        data: dosages.map((dosage) => ({
+          medicineId,
+          expectedTimeDate: dosage.expectedTimeDate,
+          status: dosage.status,
+        })),
+      });
 
-    return createdDosages.count;
+      return createdDosages.count;
+    }
+
+    return 0;
   }
 
   private static async generateFixedScheduleDosages(
@@ -154,7 +158,7 @@ export class DosageGeneratorService {
             )
           );
 
-          if (generated === 0 || dosageDate >= now) {
+          if (dosageDate >= now) {
             dosages.push({
               expectedTimeDate: dosageDate,
               status: "pending",
@@ -209,14 +213,11 @@ export class DosageGeneratorService {
         where: {
           medicineId,
           status: "pending",
-          expectedTimeDate: {
-            gte: deletionCutoff,
-          },
         },
       });
 
       if (frequencyHours || fixedSchedules) {
-        const startDate = dateStart || deletionCutoff;
+        const startDate = dateStart || fromDate || deletionCutoff;
         return await this.generateDosagesForMedicine(
           medicineId,
           frequencyHours || 0,
